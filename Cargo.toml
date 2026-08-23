@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/au-core",
+    "crates/au-data",
+    "crates/au-physics",
+    "crates/au-planet",
+    "crates/au-chem",
+    "crates/au-sim",
+    "crates/au-headless",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+# NOTE: The simulation core has ZERO third-party dependencies, deliberately.
+# Determinism is the load-bearing property of this entire project; every
+# dependency is a place where a version bump can silently change a float,
+# an iteration order, or a hash. Dependencies are permitted in the renderer
+# and tooling layers only.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+opt-level = 3
+lto = true
