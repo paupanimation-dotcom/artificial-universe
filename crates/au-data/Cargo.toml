@@ -1,0 +1,9 @@
+[package]
+name = "au-data"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Data architecture: SoA columns, chunk store, LOD, binary codec, snapshots."
+
+[dependencies]
+au-core = { path = "../au-core" }

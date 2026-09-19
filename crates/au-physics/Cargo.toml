@@ -1,0 +1,9 @@
+[package]
+name = "au-physics"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Thermodynamics and transport. Exact conservation. No knowledge of worlds, planets or organisms."
+
+[dependencies]
+au-core = { path = "../au-core" }

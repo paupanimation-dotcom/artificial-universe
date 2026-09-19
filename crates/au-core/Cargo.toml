@@ -1,0 +1,8 @@
+[package]
+name = "au-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Deterministic foundations: time, RNG streams, layers, scheduling, events, hashing."
+
+[dependencies]

@@ -1,0 +1,128 @@
+# Artificial Universe — fundamental configuration
+#
+# These are the dials of the universe. They are DATA, not code, because
+# "what happens if the constants were different?" is a question this engine
+# is supposed to be able to answer without a recompile.
+#
+# Phase 1 only defines time and storage. Gravity, chemistry and the rest
+# arrive in their own phases and are added here, not to a .rs file.
+
+# ---- Identity -------------------------------------------------------------
+# The seed. This single number, plus these constants, defines the entire
+# pristine universe. Everything not explicitly changed by the simulation is
+# derivable from it.
+world.seed = 20260713
+
+# ---- Time -----------------------------------------------------------------
+# Simulated seconds per tick. This is SIMULATION state: it changes what the
+# universe computes. It is NOT the player's fast-forward button, which lives
+# in the runner and cannot affect history.
+clock.seconds_per_tick = 1.0
+
+# Deep-time acceleration (ARCHITECTURE §3: "Long-term simulation
+# acceleration"). Chemistry needs seconds. Evolution needs millennia. Rather
+# than running 10^17 ticks, the clock coarsens as the universe ages.
+#
+# DESIGN NOTE — this is a real trade and worth arguing about later: coarsening
+# time changes outcomes, it does not merely speed them up. A world that fast-
+# forwards through its Hadean is a *different* world, not the same world seen
+# sooner. Multiplier is an integer so the clock stays bit-exact.
+clock.rescale.enabled = true
+clock.rescale.every_ticks = 65536
+clock.rescale.factor = 2
+clock.rescale.max_seconds_per_tick = 31557600
+
+# ---- Storage --------------------------------------------------------------
+# In-memory event history. The log is meant to stream to disk behind the sim;
+# this bounds RAM so that a world left running for a week does not die of its
+# own diary.
+events.capacity = 100000
+
+# Evict clean (unmodified, therefore regenerable) chunks every N ticks.
+# 0 disables. This is not a cache tuning knob — it is a continuous assertion
+# that procedural reconstruction actually works.
+chunks.evict_every_ticks = 4096
+
+# ---- Physics (Phase 2) -----------------------------------------------------
+# Thermodynamics and transport. NOT rigid bodies: nothing above this layer needs
+# a falling crate, and everything above it needs to know where the energy is
+# going. Life is a dissipative structure — it grows in the gap between a hot
+# thing and a cold thing — so the gradient is the point.
+physics.enabled = true
+
+# The lattice inside one chunk. Phase 4 will derive this from planetary scale;
+# here it is a knob.
+physics.grid.nx = 1
+physics.grid.ny = 1
+physics.grid.nz = 1
+physics.grid.cell_m = 10.0
+
+# Gravity. Zero until there is a planet to make it (Phase 4). It does not push
+# anything around yet — there is no momentum — but it does compress, and pressure
+# moves melting points, and that is how planets get layers.
+physics.gravity_m_s2 = 0.0
+physics.surface_pressure_pa = 0.0
+
+# The sky. A body that only absorbed would heat without limit; a body that only
+# radiated would freeze. Everything interesting lives in the steady state
+# between, and 2.7 K is what the universe actually offers.
+physics.top_radiates = true
+physics.space_temperature_k = 2.7
+
+# The floor. Radiogenic and primordial heat, in a real planet. Phase 4 will
+# compute it from the planet's actual inventory of unstable isotopes.
+physics.bottom_flux_w_m2 = 0.0
+
+# ---- The diffusion speed limit ---------------------------------------------
+# An explicit heat solver is stable only while dt <= dx²/(2·ndim·D). Past that it
+# does not merely lose accuracy — it oscillates to infinity in about thirty steps.
+#
+# This collides head-on with clock.rescale above. YOU CANNOT FAST-FORWARD A
+# DIFFUSION EQUATION. Doubling seconds-per-tick does not make heat spread twice as
+# fast; it makes the arithmetic diverge. The physics layer therefore CAPS the
+# clock at what it can actually integrate, and logs the fact.
+#
+# Which means deep time is not reachable by running this physics faster. It will
+# need *coarser* physics at low LOD — an implicit solver, or a statistical model.
+# That is a Phase 2b/4 problem and it is now a known one rather than a surprise.
+physics.max_substeps = 256
+physics.cfl_safety = 0.4
+
+# ---- Fluids (Phase 2b) -----------------------------------------------------
+# Off by default: a grid with no velocity field is Phase 2 exactly as it was, and
+# every Phase 2 test still passes untouched.
+#
+# The Boussinesq approximation. Density is treated as constant everywhere EXCEPT
+# where it multiplies gravity — which is not a detail of the approximation, it IS
+# the approximation. It is what every mantle and ocean code on Earth does, and it
+# is the assumption under which Ra_c = 657.511 is a true statement, so a solver
+# that wants to be checked against that number has to make it.
+physics.fluid.enabled = false
+
+# Walls, per axis: periodic | noslip | freeslip.
+#
+# freeslip is the odd one physically and the one to reach for first: convection
+# between two stress-free surfaces has a CLOSED-FORM critical Rayleigh number,
+# 27π⁴/4. no-slip has no closed form, only the tabulated 1707.762.
+physics.fluid.x_wall = periodic
+physics.fluid.y_wall = freeslip
+physics.fluid.z_wall = periodic
+
+# Incompressibility is a GLOBAL constraint — push here and the whole domain knows
+# instantly — so it cannot be applied cell by cell. It has to be solved, every
+# substep, over the entire grid. This is the price, and there is no way around it:
+# pretend the fluid is compressible and the timestep becomes the speed of sound
+# (5,770 m/s in rock ⇒ dt ≈ 2 ms) and four billion years never arrive.
+#
+# Fixed iterations, not a convergence tolerance. A loop that stops "when
+# converged" makes the iteration count depend on the state, which makes the answer
+# depend on the history in a way nothing else in this engine does. The residual is
+# REPORTED instead of being chased.
+physics.fluid.projection_iters = 60
+physics.fluid.sor_omega = 1.85
+
+# Fixed-temperature walls. Unset means "no such wall" — not "zero kelvin".
+# Holding the floor hot and the ceiling cold, and saying nothing whatsoever about
+# what the fluid should do about it, is the condition that DEFINES Rayleigh-Bénard.
+# physics.bottom_temp_k = 300.5
+# physics.top_temp_k = 299.5

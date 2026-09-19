@@ -1,0 +1,111 @@
+# ═══ VALIDATION FIXTURE — NOT CONTENT ═══════════════════════════════════════
+#
+# The engine does not load this file. Nothing in the simulation core reads it.
+# It is a MEASURING INSTRUMENT.
+#
+# You cannot test an emergent simulation by asserting that something interesting
+# happens — that is the whole point of the project. But physics is different from
+# ecology: physics has right answers, worked out over three centuries. So we hand
+# the engine real, measured substances and check that it reproduces results that
+# were known before computers existed:
+#
+#   * a linear conduction profile          (Fourier, 1822)
+#   * T = (q/εσ)^¼ at a radiating surface  (Stefan, 1879)
+#   * a latent-heat plateau of exactly m·L/P seconds
+#   * a melting point that MOVES with pressure, and moves the *wrong way* for water
+#
+# If the engine gets those right, the emergence built on top of it is emerging
+# from real thermodynamics. If it gets them wrong, everything above is decoration.
+#
+# PROJECT_VISION permits exactly this: "Earth is only a scientific reference for
+# how these systems work."
+#
+# Phase 3 (Matter) will DERIVE these numbers from element composition and
+# molecular structure, and this file will be deleted. A material will stop being
+# a hand-written row and start being a consequence.
+
+material.count = 3
+
+# ── Silicate rock. The stuff a planet is mostly made of. ────────────────────
+material.0.name = silicate
+material.0.c_solid = 1000
+material.0.c_liquid = 1200
+material.0.c_gas = 1000
+material.0.k_solid = 3.0
+material.0.k_liquid = 1.5
+material.0.k_gas = 0.05
+material.0.melt_k = 1400
+material.0.boil_k = 3200
+material.0.latent_fusion = 400000
+material.0.latent_vapor = 6000000
+material.0.emissivity = 0.9
+# Positive: rock is HARDER to melt under pressure. This is why Earth's inner core
+# is solid despite being hotter than the liquid outer core — structure that
+# nobody designed, falling out of a single sign.
+material.0.dtm_dp = 1.0e-7
+material.0.dtb_dp = 1.0e-7
+# Basaltic magma. Solid rock does not flow at all — it is treated as rigid, not
+# as a very thick liquid, because "very thick" would mean a viscous timestep of
+# ~1e-13 s and the simulation would simply stop.
+material.0.mu_liquid = 100.0
+material.0.mu_gas = 1.0e-5
+material.0.alpha = 3.0e-5
+
+# ── Water. The anomaly. ────────────────────────────────────────────────────
+material.1.name = water
+material.1.c_solid = 2093
+material.1.c_liquid = 4184
+material.1.c_gas = 1996
+material.1.k_solid = 2.2
+material.1.k_liquid = 0.6
+material.1.k_gas = 0.025
+material.1.melt_k = 273.15
+material.1.boil_k = 373.15
+material.1.latent_fusion = 333550
+material.1.latent_vapor = 2257000
+material.1.emissivity = 0.96
+# NEGATIVE. Pressure LOWERS water's melting point — almost alone among common
+# substances. It is why ice floats, why lakes freeze from the top down instead of
+# solid, and therefore why anything in a lake survives a winter.
+material.1.dtm_dp = -7.4e-8
+material.1.dtb_dp = 2.76e-4
+material.1.mu_liquid = 1.0e-3
+material.1.mu_gas = 1.0e-5
+material.1.alpha = 2.1e-4
+
+# ── A calibration fluid. Not a substance — an INSTRUMENT. ───────────────────
+#
+# It never freezes, never boils, and has Prandtl number exactly 1, so that the
+# only thing under test is the solver. A standard kilogram is not a rock either.
+#
+# It exists to reproduce one number: the critical Rayleigh number for convection
+# between two stress-free surfaces,
+#
+#     Ra_c = 27π⁴/4 = 657.511…
+#
+# which Rayleigh derived on paper in 1916 from nothing but the equations. A
+# solver that finds the onset there is not approximately right — it is right. A
+# solver that gets it wrong is wrong in a way that is completely invisible: the
+# convection rolls still look beautiful.
+#
+# The diffusivities are chosen, deliberately, so that criticality arrives at
+# ΔT ≈ 1 K rather than 1e-4 K. See the note on `advect_energy` — an engine with
+# exact integer state has a hard, knowable resolution floor, and asking it to
+# resolve a signal below its own quantum gets you noise that looks like physics.
+material.2.name = boussinesq
+material.2.c_solid = 1000
+material.2.c_liquid = 1000
+material.2.c_gas = 1000
+material.2.k_solid = 50.0
+material.2.k_liquid = 50.0
+material.2.k_gas = 50.0
+material.2.melt_k = 0
+material.2.boil_k = 1.0e9
+material.2.latent_fusion = 0
+material.2.latent_vapor = 0
+material.2.emissivity = 0
+material.2.dtm_dp = 0
+material.2.dtb_dp = 0
+material.2.mu_liquid = 0.05
+material.2.mu_gas = 0.05
+material.2.alpha = 1.0e-4

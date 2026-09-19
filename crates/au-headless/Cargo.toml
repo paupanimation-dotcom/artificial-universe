@@ -1,0 +1,18 @@
+[package]
+name = "au-headless"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Headless runner: run, verify determinism, snapshot round-trip, benchmark."
+
+[[bin]]
+name = "au"
+path = "src/main.rs"
+
+[dependencies]
+au-core = { path = "../au-core" }
+au-data = { path = "../au-data" }
+au-sim = { path = "../au-sim" }
+au-physics = { path = "../au-physics" }
+au-chem = { path = "../au-chem" }
+au-planet = { path = "../au-planet" }

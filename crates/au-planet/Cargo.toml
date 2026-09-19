@@ -1,0 +1,10 @@
+[package]
+name = "au-planet"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Planets as physical parameters, not painted terrain. Gross state (gravity, temperature, ocean/ice/vapor) is DERIVED by the physics already built; only fine detail is procedural. Nobody paints an ocean — the star's warmth and water's phase diagram decide there is one."
+
+[dependencies]
+au-core = { path = "../au-core" }
+au-physics = { path = "../au-physics" }

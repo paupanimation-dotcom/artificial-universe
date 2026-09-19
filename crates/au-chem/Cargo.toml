@@ -1,0 +1,10 @@
+[package]
+name = "au-chem"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Chemistry as an abstraction that preserves causal structure: conserved element counts, molecules as graphs, reactions as physics-gated rules. No hardcoded molecules."
+
+[dependencies]
+au-core = { path = "../au-core" }
+au-physics = { path = "../au-physics" }
